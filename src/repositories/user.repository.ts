@@ -1,61 +1,29 @@
-import { IUser, IUserDto } from "../models/IUser";
-import { readUsersFromFile, writeUsersToFile } from "../services/fs.service";
+import { IUser, IUserCreateDto, IUserUpdateDto } from "../interfaces/IUser";
+import { User } from "../models/user.model";
 
 class UserRepository {
   public async getList(): Promise<IUser[]> {
-    return await readUsersFromFile();
+    return await User.find();
   }
 
-  public async create(dto: IUserDto): Promise<IUser> {
-    const users = await readUsersFromFile();
-    const newUser = {
-      id: users.length + 1,
-      name: dto.name,
-      email: dto.email,
-      password: dto.password,
-    };
-    users.push(newUser);
-    await writeUsersToFile(users);
-    return newUser;
+  public async create(dto: IUserCreateDto): Promise<IUser> {
+    return await User.create(dto);
   }
 
-  public async getById(userId: number): Promise<IUser> {
-    const users = await readUsersFromFile();
-    return users.find((user) => user.id === userId);
+  public async getById(userId: string): Promise<IUser> {
+    return await User.findById(userId);
   }
 
-  public async deleteById(userId: number): Promise<void> {
-    let users = await readUsersFromFile();
-    users = users.filter((user) => user.id !== userId);
-    await writeUsersToFile(users);
+  public async getByEmail(email: string): Promise<IUser> {
+    return await User.findOne({ email });
   }
 
-  public async updateById(userId: number, dto: IUserDto): Promise<IUser> {
-    const users = await readUsersFromFile();
-    const userIndex = users.findIndex((user) => user.id === userId);
-    users[userIndex] = {
-      id: userId,
-      name: dto.name,
-      email: dto.email,
-      password: dto.password,
-    };
-    await writeUsersToFile(users);
-    return users[userIndex];
+  public async deleteById(userId: string): Promise<void> {
+    await User.deleteOne({ _id: userId });
   }
 
-  public async partialUpdateById(
-    userId: number,
-    dto: Partial<IUserDto>,
-  ): Promise<IUser | null> {
-    const users = await readUsersFromFile();
-    const userIndex = users.findIndex((user) => user.id === userId);
-    const user = users[userIndex];
-    users[userIndex] = {
-      ...user,
-      ...dto,
-    };
-    await writeUsersToFile(users);
-    return users[userIndex];
+  public async updateById(userId: string, dto: IUserUpdateDto): Promise<IUser> {
+    return await User.findByIdAndUpdate(userId, dto, { new: true });
   }
 }
 

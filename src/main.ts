@@ -1,18 +1,13 @@
-import dotenv from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
 
+import { config } from "./configs/config";
 import { ApiError } from "./errors/api-error";
 import { userRouter } from "./routers/user.router";
 
-//Завантаження  бібліотеки для змінних середовища з файлу .env.
-dotenv.config();
-
 const app = express();
 
-//для автоматичного парсингу JSON із тіла запиту (req.body)
 app.use(express.json());
-
-//для парсингу URL-кодованих даних (наприклад, з HTML-форм).
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req: Request, res: Response) => {
@@ -38,7 +33,7 @@ process.on("uncaughtException", (error) => {
   process.exit(1);
 });
 
-const port = process.env.PORT;
-app.listen(port, () => {
-  console.log(`Server has been started on port ${port}`);
+app.listen(config.port, async () => {
+  await mongoose.connect(config.mongoUrl);
+  console.log(`Server has been started on port ${config.port}`);
 });
