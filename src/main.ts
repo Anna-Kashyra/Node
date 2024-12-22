@@ -16,7 +16,6 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/users", userRouter);
 
-//Викликається для всіх маршрутів (*) у разі виникнення помилки
 app.use(
   "*",
   (error: ApiError, req: Request, res: Response, next: NextFunction) => {
@@ -27,7 +26,6 @@ app.use(
   },
 );
 
-//Відловлює помилки, які не були оброблені через try...catch або next
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
   process.exit(1);
