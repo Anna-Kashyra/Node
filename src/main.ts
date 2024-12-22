@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 import { config } from "./configs/config";
 import { ApiError } from "./errors/api-error";
+import { authRouter } from "./routers/auth.router";
 import { userRouter } from "./routers/user.router";
 
 const app = express();
@@ -14,9 +15,9 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello!");
 });
 
+app.use("/auth", authRouter);
 app.use("/users", userRouter);
 
-//Викликається для всіх маршрутів (*) у разі виникнення помилки
 app.use(
   "*",
   (error: ApiError, req: Request, res: Response, next: NextFunction) => {
@@ -27,13 +28,12 @@ app.use(
   },
 );
 
-//Відловлює помилки, які не були оброблені через try...catch або next
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
   process.exit(1);
 });
 
 app.listen(config.port, async () => {
-  await mongoose.connect(config.mongoUrl);
+  await mongoose.connect(config.mongoUri);
   console.log(`Server has been started on port ${config.port}`);
 });

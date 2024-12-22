@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
-import { IUserCreateDto, IUserUpdateDto } from "../interfaces/IUser";
+import { ITokenPayload } from "../interfaces/IToken";
+import { IUserUpdateDto } from "../interfaces/IUser";
 import { userService } from "../services/user.service";
 
 class UserController {
@@ -8,18 +9,39 @@ class UserController {
     try {
       const result = await userService.getList();
       res.json(result);
-    } catch (error) {
-      next(error);
+    } catch (e) {
+      next(e);
     }
   }
 
-  public async create(req: Request, res: Response, next: NextFunction) {
+  public async getMe(req: Request, res: Response, next: NextFunction) {
     try {
-      const dto = req.body as IUserCreateDto;
-      const result = await userService.create(dto);
+      const tokenPayload = req.res.locals.tokenPayload as ITokenPayload;
+      const result = await userService.getMe(tokenPayload);
+      res.status(200).json(result);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public async deleteMe(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tokenPayload = req.res.locals.tokenPayload as ITokenPayload;
+      await userService.deleteMe(tokenPayload);
+      res.sendStatus(204);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public async updateMe(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tokenPayload = req.res.locals.tokenPayload as ITokenPayload;
+      const dto = req.body as IUserUpdateDto;
+      const result = await userService.updateMe(tokenPayload, dto);
       res.status(201).json(result);
-    } catch (error) {
-      next(error);
+    } catch (e) {
+      next(e);
     }
   }
 
@@ -28,29 +50,8 @@ class UserController {
       const userId = req.params.userId;
       const result = await userService.getUserById(userId);
       res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  public async deleteUser(req: Request, res: Response, next: NextFunction) {
-    try {
-      const userId = req.params.userId;
-      await userService.deleteUser(userId);
-      res.sendStatus(204);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  public async updateUser(req: Request, res: Response, next: NextFunction) {
-    try {
-      const userId = req.params.userId;
-      const dto = req.body as IUserUpdateDto;
-      const result = await userService.updateUser(userId, dto);
-      res.status(201).json(result);
-    } catch (error) {
-      next(error);
+    } catch (e) {
+      next(e);
     }
   }
 }

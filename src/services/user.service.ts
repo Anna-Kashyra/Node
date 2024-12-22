@@ -1,5 +1,6 @@
 import { ApiError } from "../errors/api-error";
-import { IUser, IUserCreateDto, IUserUpdateDto } from "../interfaces/IUser";
+import { ITokenPayload } from "../interfaces/IToken";
+import { IUser, IUserUpdateDto } from "../interfaces/IUser";
 import { userRepository } from "../repositories/user.repository";
 
 class UserService {
@@ -7,9 +8,38 @@ class UserService {
     return await userRepository.getList();
   }
 
-  public async create(dto: IUserCreateDto): Promise<IUser> {
-    await this.isEmailUnique(dto.email);
-    return await userRepository.create(dto);
+  public async getMe(tokenPayload: ITokenPayload): Promise<IUser> {
+    const user = await userRepository.getById(tokenPayload.userId);
+    if (!user) {
+      throw new ApiError("User not found", 404);
+    }
+    return user;
+  }
+
+  public async deleteMe(tokenPayload: ITokenPayload): Promise<void> {
+    const user = await userRepository.getById(tokenPayload.userId);
+    if (!user) {
+      throw new ApiError("User not found", 404);
+    }
+    await userRepository.deleteById(tokenPayload.userId);
+  }
+
+  public async updateMe(
+    tokenPayload: ITokenPayload,
+    dto: IUserUpdateDto,
+  ): Promise<IUser> {
+    const user = await userRepository.getById(tokenPayload.userId);
+    if (!user) {
+      throw new ApiError("User not found", 404);
+    }
+    return await userRepository.updateById(user._id, dto);
+  }
+
+  public async isEmailUnique(email: string): Promise<void> {
+    const user = await userRepository.getByEmail(email);
+    if (user) {
+      throw new ApiError("Email is already in use", 409);
+    }
   }
 
   public async getUserById(userId: string): Promise<IUser> {
@@ -18,29 +48,6 @@ class UserService {
       throw new ApiError("User not found", 404);
     }
     return user;
-  }
-
-  public async deleteUser(userId: string): Promise<void> {
-    const user = await userRepository.getById(userId);
-    if (!user) {
-      throw new ApiError("User not found", 404);
-    }
-    await userRepository.deleteById(userId);
-  }
-
-  public async updateUser(userId: string, dto: IUserUpdateDto): Promise<IUser> {
-    const user = await userRepository.getById(userId);
-    if (!user) {
-      throw new ApiError("User not found", 404);
-    }
-    return await userRepository.updateById(userId, dto);
-  }
-
-  private async isEmailUnique(email: string): Promise<void> {
-    const user = await userRepository.getByEmail(email);
-    if (user) {
-      throw new ApiError("Email is already in use", 409);
-    }
   }
 }
 
