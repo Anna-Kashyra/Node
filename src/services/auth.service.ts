@@ -1,8 +1,11 @@
+import { config } from "../configs/config";
+import { EmailTypeEnum } from "../enums/email-type.enum";
 import { ApiError } from "../errors/api-error";
 import { ITokenPair, ITokenPayload } from "../interfaces/IToken";
 import { ILogin, IUser, IUserCreateDto } from "../interfaces/IUser";
 import { tokenRepository } from "../repositories/token.repository";
 import { userRepository } from "../repositories/user.repository";
+import { emailService } from "./email.service";
 import { passwordService } from "./password.service";
 import { tokenService } from "./token.service";
 import { userService } from "./user.service";
@@ -19,6 +22,11 @@ class AuthService {
       role: user.role,
     });
     await tokenRepository.create({ ...tokens, _userId: user._id });
+    await emailService.sendEmail(
+      EmailTypeEnum.WELCOME,
+      "anna.kashyra@gmail.com",
+      { name: user.name, frontUrl: config.frontUrl },
+    );
     return { user, tokens };
   }
 
@@ -52,6 +60,35 @@ class AuthService {
     });
     await tokenRepository.create({ ...tokens, _userId: tokenPayload.userId });
     return tokens;
+  }
+
+  public async logout(
+    tokenPayload: ITokenPayload,
+    tokenId: string,
+  ): Promise<void> {
+    const user = await userRepository.getById(tokenPayload.userId);
+    await tokenRepository.deleteOneByParams({ _id: tokenId });
+    await emailService.sendEmail(
+      EmailTypeEnum.LOGOUT,
+      "anna.kashyra@gmail.com",
+      {
+        name: user.name,
+        frontUrl: config.frontUrl,
+      },
+    );
+  }
+
+  public async logoutAll(tokenPayload: ITokenPayload): Promise<void> {
+    const user = await userRepository.getById(tokenPayload.userId);
+    await tokenRepository.deleteAllByParams({ _userId: tokenPayload.userId });
+    await emailService.sendEmail(
+      EmailTypeEnum.LOGOUT,
+      "anna.kashyra@gmail.com",
+      {
+        name: user.name,
+        frontUrl: config.frontUrl,
+      },
+    );
   }
 }
 
