@@ -7,7 +7,7 @@ class TokenRepository {
   }
 
   public async findByParams(params: Partial<IToken>): Promise<IToken> {
-    return await Token.findOne(params);
+    return await Token.findOne(params).populate("_userId");
   }
 
   public async deleteOneByParams(params: Partial<IToken>): Promise<void> {

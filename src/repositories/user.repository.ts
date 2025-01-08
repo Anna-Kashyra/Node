@@ -1,4 +1,5 @@
 import { IUser, IUserCreateDto } from "../interfaces/IUser";
+import { Token } from "../models/token.model";
 import { User } from "../models/user.model";
 
 class UserRepository {
@@ -24,6 +25,23 @@ class UserRepository {
 
   public async updateById(userId: string, dto: Partial<IUser>): Promise<IUser> {
     return await User.findByIdAndUpdate(userId, dto, { new: true });
+  }
+
+  public async findWithOutActivity(date: Date): Promise<IUser[]> {
+    return await User.aggregate([
+      {
+        $lookup: {
+          from: Token.collection.name,
+          let: { userId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_userId", "$$userId"] } } },
+            { $match: { createdAt: { $gt: date } } },
+          ],
+          as: "tokens",
+        },
+      },
+      { $match: { tokens: { $size: 0 } } },
+    ]);
   }
 }
 
