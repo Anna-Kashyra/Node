@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from "express";
+import { UploadedFile } from "express-fileupload";
 
 import { ITokenPayload } from "../interfaces/IToken";
 import { IUserUpdateDto } from "../interfaces/IUser";
+import { userPresenter } from "../presenters/user.presenter";
 import { userService } from "../services/user.service";
 
 class UserController {
@@ -18,7 +20,8 @@ class UserController {
     try {
       const tokenPayload = req.res.locals.tokenPayload as ITokenPayload;
       const result = await userService.getMe(tokenPayload);
-      res.status(200).json(result);
+      const response = userPresenter.toShortResponse(result);
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
@@ -39,7 +42,31 @@ class UserController {
       const tokenPayload = req.res.locals.tokenPayload as ITokenPayload;
       const dto = req.body as IUserUpdateDto;
       const result = await userService.updateMe(tokenPayload, dto);
-      res.status(201).json(result);
+      const response = userPresenter.toResponse(result);
+      res.status(201).json(response);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public async uploadAvatar(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tokenPayload = req.res.locals.tokenPayload as ITokenPayload;
+      const file = req.files?.avatar as UploadedFile;
+      const result = await userService.uploadAvatar(tokenPayload, file);
+      const response = userPresenter.toResponse(result);
+      res.status(201).json(response);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  public async deleteAvatar(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tokenPayload = req.res.locals.tokenPayload as ITokenPayload;
+      const result = await userService.deleteAvatar(tokenPayload);
+      const response = userPresenter.toResponse(result);
+      res.status(201).json(response);
     } catch (e) {
       next(e);
     }
@@ -49,7 +76,8 @@ class UserController {
     try {
       const userId = req.params.userId;
       const result = await userService.getUserById(userId);
-      res.status(200).json(result);
+      const response = userPresenter.toResponse(result);
+      res.status(200).json(response);
     } catch (e) {
       next(e);
     }
