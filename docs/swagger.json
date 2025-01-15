@@ -1,0 +1,387 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This api is for testing the swagger ui",
+    "version": "1.0.7",
+    "title": "Express API",
+    "contact": {
+      "email": "test@gmail.com"
+    }
+  },
+  "host": "0.0.0.0:3000",
+  "tags": [
+    {
+      "name": "user",
+      "description": "Operations about user"
+    },
+    {
+      "name": "auth",
+      "description": "Authenticated user operations"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "tags": ["user"],
+        "summary": "Get user list",
+        "description": "Retrieves a list of all users",
+        "operationId": "getUserList",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Optional query parameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/PrivateUserResponse" }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "get": {
+        "tags": ["user"],
+        "summary": "Get user by ID",
+        "description": "Retrieve details of a user by their unique ID",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user to retrieve",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/PrivateUserResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "tags": ["user"],
+        "summary": "Get me",
+        "description": "This can only be done by the logged in user",
+        "operationId": "getMyUser",
+        "produces": [
+          "application/json",
+          "application/xml"
+        ],
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/PrivateUserResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["user"],
+        "summary": "Update me",
+        "description": "This can only be done by the logged in user",
+        "operationId": "updateMyUser",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "application/xml"
+        ],
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateUserDTO"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/PrivateUserResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid user supplied"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["user"],
+        "summary": "Delete user",
+        "description": "This can only be done by the logged in user",
+        "operationId": "deleteUser",
+        "security": [{"BearerAuth": []}],
+        "produces": [
+          "application/json",
+          "application/xml"
+        ],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "The name that needs to be deleted",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/PrivateUserResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid username supplied"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/me/avatar": {
+      "post": {
+        "tags": ["user"],
+        "summary": "Upload avatar",
+        "description": "Uploads an avatar for the user",
+        "operationId": "uploadAvatar",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "avatar",
+            "in": "formData",
+            "description": "Avatar file to upload",
+            "required": true,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Avatar uploaded successfully"
+          },
+          "400": {
+            "description": "Invalid file format"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["user"],
+        "summary": "Delete avatar",
+        "description": "Deletes the user's avatar",
+        "operationId": "deleteAvatar",
+        "responses": {
+          "204": {
+            "description": "Avatar deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/auth/sign-up": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "User sign-up",
+        "description": "Register a new user",
+        "operationId": "signUp",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User sign-up data",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserSignUpDTO"
+            }
+          }
+        ],
+        "responses": {
+          "201": {"description": "User created successfully"},
+          "400": {"description": "Invalid data supplied"}
+        }
+      }
+    },
+    "/auth/sign-in": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "User sign-in",
+        "description": "Authenticate a user and provide a token",
+        "operationId": "signIn",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User login data",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserLoginDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {"description": "Login successful"},
+          "401": {"description": "Invalid credentials"}
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Logout user",
+        "description": "Invalidate the user's current token",
+        "operationId": "logout",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "204": {"description": "Logout successful"},
+          "401": {"description": "Unauthorized"}
+        }
+      }
+    },
+    "/auth/logout/all": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Logout from all sessions",
+        "description": "Invalidate all tokens for the user",
+        "operationId": "logoutAll",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "204": {"description": "Logout successful"},
+          "401": {"description": "Unauthorized"}
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization"
+    }
+  },
+  "definitions": {
+    "PrivateUserResponse": {
+      "type": "object",
+      "required": ["_id", "name", "email", "role", "isDeleted", "isVerified"],
+      "properties": {
+        "_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The unique identifier for a user"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "age": {
+          "type": "number"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user"]
+        },
+        "isDeleted": {
+          "type": "boolean"
+        },
+        "isVerified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "UpdateUserDTO": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Updated name in the system",
+          "type": "string"
+        },
+        "phone": {
+          "description": "Updated phone number in the system",
+          "type": "string"
+        },
+        "age": {
+          "description": "Age in years",
+          "type": "number"
+        }
+      }
+    },
+    "UserSignUpDTO": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "age": {"type": "number"},
+        "email": {"type": "string"},
+        "password": {"type": "string"},
+        "phone": {"type": "string"}
+      }
+    },
+    "UserLoginDTO": {
+      "type": "object",
+      "properties": {
+        "email": {"type": "string"},
+        "password": {"type": "string"}
+      }
+    }
+  }
+}

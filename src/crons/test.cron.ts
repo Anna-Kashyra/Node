@@ -4,4 +4,4 @@ const handler = async () => {
   console.log("Hello, World!");
 };
 
-export const testCrone = new CronJob("* */30 * * * *", handler);
+export const testCrone = new CronJob("* * * * 9 *", handler);

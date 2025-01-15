@@ -1,7 +1,11 @@
+import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import expressFileUpload from "express-fileupload";
+import rateLimit from "express-rate-limit";
 import mongoose from "mongoose";
+import swaggerUi from "swagger-ui-express";
 
+import swaggerDocument from "../docs/swagger.json";
 import { config } from "./configs/config";
 import { cronRunner } from "./crons";
 import { ApiError } from "./errors/api-error";
@@ -10,9 +14,23 @@ import { userRouter } from "./routers/user.router";
 
 const app = express();
 
+app.use(
+  cors({
+    origin: "*",
+    methods: ["POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    preflightContinue: false,
+    optionsSuccessStatus: 200,
+  }),
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(expressFileUpload());
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+app.use(rateLimit({ windowMs: 30 * 1000, limit: 10 }));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello!");

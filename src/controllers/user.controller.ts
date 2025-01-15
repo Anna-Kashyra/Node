@@ -1,21 +1,24 @@
 import { NextFunction, Request, Response } from "express";
 import { UploadedFile } from "express-fileupload";
 
+import { MeasureExecutionTime } from "../decorators/measure-time.decorator";
 import { ITokenPayload } from "../interfaces/IToken";
-import { IUserUpdateDto } from "../interfaces/IUser";
+import { IUserListQuery, IUserUpdateDto } from "../interfaces/IUser";
 import { userPresenter } from "../presenters/user.presenter";
 import { userService } from "../services/user.service";
 
 class UserController {
   public async getList(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await userService.getList();
+      const query = req.query as unknown as IUserListQuery;
+      const result = await userService.getList(query);
       res.json(result);
     } catch (e) {
       next(e);
     }
   }
 
+  @MeasureExecutionTime
   public async getMe(req: Request, res: Response, next: NextFunction) {
     try {
       const tokenPayload = req.res.locals.tokenPayload as ITokenPayload;
